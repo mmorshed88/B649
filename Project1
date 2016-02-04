@@ -12,6 +12,8 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.NLineInputFormat;
 
 public class BasicStat {
 
@@ -94,8 +96,8 @@ public class BasicStat {
     float sum_partial = 0;    
     float sum_square = 0;
     float counter = 0;
-    float min = 0.999f;
-    float max = -0.999f;
+    float min = 10000.999f;
+    float max = -10000.999f;
       while (itr.hasMoreTokens()) {
         word.set(itr.nextToken());    
         sum_partial += Float.parseFloat(word.toString());
@@ -136,8 +138,8 @@ public class BasicStat {
       float sum = 0; 
       float counter = 0;
       float square_sum = 0;
-      float current_min = 0.99f; 
-      float current_max = -0.99f; 
+      float current_min = 10000.99f; 
+      float current_max = -10000.99f; 
      for (MyWritable val : values) {
         if(val.get_partialMin() <= current_min){
                               current_min = val.get_partialMin();
@@ -171,21 +173,20 @@ public class BasicStat {
   // Driver program
   public static void main(String[] args) throws Exception {
     Configuration conf = new Configuration(); 
+//    conf.setInt(NLineInputFormat.LINES_PER_MAP,100);
     String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs(); // get all args
     if (otherArgs.length != 2) {
       System.err.println("Usage: BasicStat <in> <out>");
       System.exit(2);
     }
-
+     conf.setInt(NLineInputFormat.LINES_PER_MAP,100);
     // create a job with name "basicstat"
     Job job = new Job(conf, "basicstat");
+    job.setInputFormatClass(TextInputFormat.class);
     job.setJarByClass(BasicStat.class);
     job.setMapperClass(Map.class);
-   // job.setCombinerClass(Combine.class);
     job.setReducerClass(Reduce.class);
    
-    // Add a combiner here, not required to successfully run the wordcount program  
-    //job.setCombinerClass(Combiner.class);
     // set output key type   
     job.setOutputKeyClass(Text.class);
     // set output value type
